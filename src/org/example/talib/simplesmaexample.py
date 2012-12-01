@@ -2,6 +2,10 @@
 Created on Nov 25, 2012
 
 @author: Shakti
+
+This comment added by Peter on Nov 30, 2012
+to see how git works.
+
 '''
 import pandas.io.data as web  
 import talib as ta
