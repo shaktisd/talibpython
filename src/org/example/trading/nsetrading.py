@@ -8,11 +8,12 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.finance import candlestick
-
+import talib as ta
 
 # 1 min quote of nse live data
 URL = "http://www.nseindia.com/ChartApp/install/charts/data/GetHistoricalNew.jsp?Instrument=FUTSTK&CDSymbol=S%26P%20CNX%20NIFTY&Segment=OI&Series=EQ&CDExpiryMonth=1&FOExpiryMonth=1&IRFExpiryMonth=27-03-2013&CDIntraExpiryMonth=27-12-2012&FOIntraExpiryMonth=27-12-2012&IRFIntraExpiryMonth=&CDDate1=01-12-2011&CDDate2=08-12-2012&PeriodType=2&Periodicity=1&ct0=g1|1|1&ct1=g2|2|1&ctcount=2&time=1354976463676"
-
+SMA_FAST = 5
+SMA_SLOW = 20
 quotes = {}
 
 def _request():
@@ -35,18 +36,25 @@ def _parse_delimited_data(data):
 
 # Data for matplotlib finance plot
 quotes = _parse_delimited_data(_request())
-print quotes
 ochl = np.array(pd.DataFrame({'0':range(1,np.array(quotes['g1_o']).size + 1),
                                   '1':np.array(quotes['g1_o']).astype(np.longdouble),
                                   '2':np.array(quotes['g1_c']).astype(np.longdouble),
                                   '3':np.array(quotes['g1_h']).astype(np.longdouble),
                                   '4':np.array(quotes['g1_l']).astype(np.longdouble)}))
+
+analysis = pd.DataFrame(index = quotes['g1_c'])
+analysis['sma_f'] = ta.SMA(np.array(quotes['g1_c']).astype(np.float), SMA_FAST)
+analysis['sma_s'] = ta.SMA(np.array(quotes['g1_c']).astype(np.float), SMA_SLOW)
 # Prepare plot
 fig, ax = plt.subplots(1, 1, sharex=True)
 ax.set_ylabel('SP500', size=20)
 
 # Plot candles
 candlestick(ax, ochl, width=0.5, colorup='g', colordown='r', alpha=1)
+
+# Draw Moving Averages
+analysis.sma_f.plot(c='r')
+analysis.sma_s.plot(c='b')
 
 # Show the picture!
 plt.show()
