@@ -1,0 +1,3 @@
+Intraday 1 min interval
+http://quotes.esignal.com/esignalprod//esigchartspon?cont=AAPL&period=V&varminutes=5&size=745x550&bartype=AREA&bardensity=MEDIUM&showextendednames=true&chartdata=wstudies&callback=ohlcModule.chartCallback
+http://quotes.esignal.com/esignalprod/chart.action?types=stock%2Cindex%2Cfuture%2Cforex%2Cfund&symbol=AAPL&chart.overlay=&chart.period=V&chart.minutes=1&chart.bartype=AREA&chart.bardensity=MEDIUM&x=47&y=12&chart.studies=
