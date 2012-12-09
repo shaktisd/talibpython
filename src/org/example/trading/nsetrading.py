@@ -32,30 +32,49 @@ def _parse_delimited_data(data):
     for row in rows [1:]:
         for idx, value in enumerate (row.split ('|') ):
             d [keys [idx] ].append (value)
+    d['g1_o'] = np.array(d['g1_o']).astype(np.float)
+    d['g1_h'] = np.array(d['g1_h']).astype(np.float)
+    d['g1_l'] = np.array(d['g1_l']).astype(np.float)
+    d['g1_c'] = np.array(d['g1_c']).astype(np.float)
     return d
 
 # Data for matplotlib finance plot
 quotes = _parse_delimited_data(_request())
-ochl = np.array(pd.DataFrame({'0':range(1,np.array(quotes['g1_o']).size + 1),
-                                  '1':np.array(quotes['g1_o']).astype(np.longdouble),
-                                  '2':np.array(quotes['g1_c']).astype(np.longdouble),
-                                  '3':np.array(quotes['g1_h']).astype(np.longdouble),
-                                  '4':np.array(quotes['g1_l']).astype(np.longdouble)}))
+ochl = np.array(pd.DataFrame(    {'0':range(1,quotes['g1_o'].size + 1),
+                                  '1':quotes['g1_o'],
+                                  '2':quotes['g1_c'],
+                                  '3':quotes['g1_h'],
+                                  '4':quotes['g1_l']}))
 
-analysis = pd.DataFrame(index = quotes['g1_c'])
-analysis['sma_f'] = ta.SMA(np.array(quotes['g1_c']).astype(np.float), SMA_FAST)
-analysis['sma_s'] = ta.SMA(np.array(quotes['g1_c']).astype(np.float), SMA_SLOW)
+analysis = pd.DataFrame(index = quotes['date'])
+analysis['sma_f'] = ta.SMA(quotes['g1_c'], SMA_FAST)
+analysis['sma_s'] = ta.SMA(quotes['g1_c'], SMA_SLOW)
+long_position = 0;
+short_position = 0;
+
+for i in range(0,quotes['g1_o'].size):
+    if (analysis['sma_f'][i] > analysis['sma_s'][i]) & (analysis['sma_f'][i-1] < analysis['sma_s'][i-1]) & (long_position == 0) :
+        print 'Open Long:',quotes['g1_c'][i]
+        long_position =  quotes['g1_c'][i]       
+    elif (analysis['sma_f'][i] < analysis['sma_s'][i]) & (analysis['sma_f'][i-1] > analysis['sma_s'][i-1]) & (short_position == 0) :
+        print 'Open Short:',quotes['g1_c'][i]
+        short_position =  quotes['g1_c'][i]
+    elif ((long_position > 0) & ((quotes['g1_c'][i] > long_position) | (quotes['g1_c'][i] - long_position < -1 ))):
+        print 'Close Long:',quotes['g1_c'][i], ' pnl ' , quotes['g1_c'][i] - long_position
+        long_position = 0
+    elif ((short_position > 0) & ((quotes['g1_c'][i] < short_position) | (short_position - quotes['g1_c'][i] < -1 ))):
+        print 'Close Short:',quotes['g1_c'][i], ' pnl ' , short_position - quotes['g1_c'][i]
+        short_position = 0 
+
+print long_position, short_position      
 # Prepare plot
 fig, ax = plt.subplots(1, 1, sharex=True)
-ax.set_ylabel('SP500', size=20)
-
+ax.set_ylabel('NSE', size=20)
 # Plot candles
 candlestick(ax, ochl, width=0.5, colorup='g', colordown='r', alpha=1)
-
 # Draw Moving Averages
-analysis.sma_f.plot(c='r')
-analysis.sma_s.plot(c='b')
-
+analysis.sma_f.plot(c='b')
+analysis.sma_s.plot(c='k')
 # Show the picture!
 plt.show()
 
