@@ -21,6 +21,12 @@ def _request():
     req.add_header('User-Agent', 'Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.11 (KHTML, like Gecko) Chrome/23.0.1271.95 Safari/537.11')
     req.add_header('Accept', 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8')
     return urllib2.urlopen(req).read()
+
+def _requestFile():
+    f = open('C:\\Android\\workspace\\talibpython\\files\\16Nov2012.txt')
+    return f.read()
+
+
     
 #data format date|g1_o|g1_h|g1_l|g1_c|g2|g2_CUMVOL~
 #line delimiter ~
@@ -39,7 +45,7 @@ def _parse_delimited_data(data):
     return d
 
 # Data for matplotlib finance plot
-quotes = _parse_delimited_data(_request())
+quotes = _parse_delimited_data(_requestFile())
 ochl = np.array(pd.DataFrame(    {'0':range(1,quotes['g1_o'].size + 1),
                                   '1':quotes['g1_o'],
                                   '2':quotes['g1_c'],
