@@ -3,6 +3,8 @@ Created on Dec 2, 2012
 
 @author: Shakti
 Can't use esignal for quotes as there are duplicates quotes , not a very reliable source.
+
+@deprecated: 
 '''
 import urllib
 import json
