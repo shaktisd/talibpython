@@ -15,7 +15,7 @@ URL = "http://www.nseindia.com/ChartApp/install/charts/data/GetHistoricalNew.jsp
 SMA_FAST = 5
 SMA_SLOW = 20
 MAX_PROFIT = 5
-STOP_LOSS = -2
+STOP_LOSS = -1
 RSI_PERIOD = 20
 quotes = {}
 
@@ -65,10 +65,10 @@ short_position = 0
 net_pnl = 0
 
 for i in range(0,quotes['g1_o'].size):
-    if (analysis['sma_f'][i] > analysis['sma_s'][i]) & (analysis['sma_f'][i-1] < analysis['sma_s'][i-1]) & (long_position == 0) & (analysis['rsi'][i] < 50 ) :
+    if (analysis['sma_f'][i] > analysis['sma_s'][i]) & (analysis['sma_f'][i-1] < analysis['sma_s'][i-1]) & (long_position == 0)  :
         print 'Open Long:',quotes['g1_c'][i]
         long_position =  quotes['g1_c'][i]       
-    elif (analysis['sma_f'][i] < analysis['sma_s'][i]) & (analysis['sma_f'][i-1] > analysis['sma_s'][i-1]) & (short_position == 0) & (analysis['rsi'][i] > 50 ) :
+    elif (analysis['sma_f'][i] < analysis['sma_s'][i]) & (analysis['sma_f'][i-1] > analysis['sma_s'][i-1]) & (short_position == 0) :
         print 'Open Short:',quotes['g1_c'][i]
         short_position =  quotes['g1_c'][i]
     elif ((long_position > 0) & (((quotes['g1_c'][i] - long_position) >= MAX_PROFIT) | ((quotes['g1_c'][i] - long_position) < STOP_LOSS ))):
