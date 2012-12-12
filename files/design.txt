@@ -1,0 +1,9 @@
+1. Feeds input
+2. Signals / long / short
+3. Trader
+	a) Takes decision based on Signals in Position - Long / Short
+	b) Based on signal fill stop loss & upper limit of the position
+	b) If positions are open decide whether stop loss is hit or continue with position
+	c) If positions are open decide whether upper limit of profit is achieved
+	
+

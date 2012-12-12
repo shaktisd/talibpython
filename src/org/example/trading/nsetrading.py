@@ -14,6 +14,9 @@ import talib as ta
 URL = "http://www.nseindia.com/ChartApp/install/charts/data/GetHistoricalNew.jsp?Instrument=FUTSTK&CDSymbol=S%26P%20CNX%20NIFTY&Segment=OI&Series=EQ&CDExpiryMonth=1&FOExpiryMonth=1&IRFExpiryMonth=27-03-2013&CDIntraExpiryMonth=27-12-2012&FOIntraExpiryMonth=27-12-2012&IRFIntraExpiryMonth=&CDDate1=01-12-2011&CDDate2=08-12-2012&PeriodType=2&Periodicity=1&ct0=g1|1|1&ct1=g2|2|1&ctcount=2&time=1354976463676"
 SMA_FAST = 5
 SMA_SLOW = 20
+MAX_PROFIT = 5
+STOP_LOSS = -2
+RSI_PERIOD = 20
 quotes = {}
 
 def _request():
@@ -23,7 +26,7 @@ def _request():
     return urllib2.urlopen(req).read()
 
 def _requestFile():
-    f = open('C:\\Android\\workspace\\talibpython\\files\\16Nov2012.txt')
+    f = open('C:\\Android\\workspace\\talibpython\\files\\07Dec2012.txt')
     return f.read()
 
 
@@ -55,33 +58,55 @@ ochl = np.array(pd.DataFrame(    {'0':range(1,quotes['g1_o'].size + 1),
 analysis = pd.DataFrame(index = quotes['date'])
 analysis['sma_f'] = ta.SMA(quotes['g1_c'], SMA_FAST)
 analysis['sma_s'] = ta.SMA(quotes['g1_c'], SMA_SLOW)
-long_position = 0;
-short_position = 0;
+analysis['rsi'] = ta.RSI(quotes['g1_c'],RSI_PERIOD)
+
+long_position = 0
+short_position = 0
+net_pnl = 0
 
 for i in range(0,quotes['g1_o'].size):
-    if (analysis['sma_f'][i] > analysis['sma_s'][i]) & (analysis['sma_f'][i-1] < analysis['sma_s'][i-1]) & (long_position == 0) :
+    if (analysis['sma_f'][i] > analysis['sma_s'][i]) & (analysis['sma_f'][i-1] < analysis['sma_s'][i-1]) & (long_position == 0) & (analysis['rsi'][i] < 50 ) :
         print 'Open Long:',quotes['g1_c'][i]
         long_position =  quotes['g1_c'][i]       
-    elif (analysis['sma_f'][i] < analysis['sma_s'][i]) & (analysis['sma_f'][i-1] > analysis['sma_s'][i-1]) & (short_position == 0) :
+    elif (analysis['sma_f'][i] < analysis['sma_s'][i]) & (analysis['sma_f'][i-1] > analysis['sma_s'][i-1]) & (short_position == 0) & (analysis['rsi'][i] > 50 ) :
         print 'Open Short:',quotes['g1_c'][i]
         short_position =  quotes['g1_c'][i]
-    elif ((long_position > 0) & ((quotes['g1_c'][i] > long_position) | (quotes['g1_c'][i] - long_position < -1 ))):
-        print 'Close Long:',quotes['g1_c'][i], ' pnl ' , quotes['g1_c'][i] - long_position
+    elif ((long_position > 0) & (((quotes['g1_c'][i] - long_position) >= MAX_PROFIT) | ((quotes['g1_c'][i] - long_position) < STOP_LOSS ))):
+        net_pnl = net_pnl + quotes['g1_c'][i] - long_position
+        print 'Close Long:',quotes['g1_c'][i], ' net_pnl ' , net_pnl
         long_position = 0
-    elif ((short_position > 0) & ((quotes['g1_c'][i] < short_position) | (short_position - quotes['g1_c'][i] < -1 ))):
-        print 'Close Short:',quotes['g1_c'][i], ' pnl ' , short_position - quotes['g1_c'][i]
-        short_position = 0 
+    elif ((short_position > 0) & ((short_position - quotes['g1_c'][i] >= MAX_PROFIT) | (short_position - quotes['g1_c'][i] < STOP_LOSS ))):
+        net_pnl = net_pnl + short_position  - quotes['g1_c'][i]
+        print 'Close Short:',quotes['g1_c'][i], ' net_pnl ' , net_pnl
+        short_position = 0
+        
+if long_position > 0:
+    net_pnl = net_pnl + quotes['g1_c'][i] - long_position
+    print 'Close Long:',quotes['g1_c'][i], ' net_pnl ' , net_pnl
+    long_position = 0
+
+if short_position > 0:
+    net_pnl = net_pnl + short_position  - quotes['g1_c'][i]
+    print 'Close Short:',quotes['g1_c'][i], ' net_pnl ' , net_pnl
+    short_position = 0    
 
 print long_position, short_position      
+
+
 # Prepare plot
-fig, ax = plt.subplots(1, 1, sharex=True)
-ax.set_ylabel('NSE', size=20)
+fig, (ax1,ax2) = plt.subplots(2, 1, sharex=True)
+ax1.set_ylabel('NSE', size=20)
 # Plot candles
-candlestick(ax, ochl, width=0.5, colorup='g', colordown='r', alpha=1)
+candlestick(ax1, ochl, width=0.5, colorup='g', colordown='r', alpha=1)
 # Draw Moving Averages
-analysis.sma_f.plot(c='b')
-analysis.sma_s.plot(c='k')
+analysis.sma_f.plot(ax = ax1,c='b')
+analysis.sma_s.plot(ax = ax1,c='k')
+
+#RSI
+ax2.set_ylabel('RSI', size=20)
+analysis.rsi.plot(ax = ax2,c='c')
+plt.plot()
 # Show the picture!
 plt.show()
 
-            
+
